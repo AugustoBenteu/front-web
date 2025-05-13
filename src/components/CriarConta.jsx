@@ -14,6 +14,7 @@ import {
   Divider,
   Flex,
 } from '@chakra-ui/react';
+import { Link as RouterLink } from 'react-router-dom';
 
 export default function CriarConta() {
   return (
@@ -26,8 +27,8 @@ export default function CriarConta() {
           <Link href="#">Contato</Link>
           <Link href="#">Sobre</Link>
           <Divider orientation="vertical" h="20px" />
-          <Button variant="outline" size="sm">Criar conta</Button>
-          <Button colorScheme="blackAlpha" size="sm">Entrar</Button>
+          <Button variant="outline" size="sm" as={RouterLink} to="/criar-conta">Criar conta</Button>
+          <Button colorScheme='blackAlpha' size="sm" as={RouterLink} to="/login">Entrar</Button>
         </HStack>
       </Flex>
 
@@ -58,7 +59,7 @@ export default function CriarConta() {
             <Button colorScheme="blackAlpha">Criar conta</Button>
             <Text fontSize="sm" align="center">
               Já possui uma conta?{' '}
-              <Link color="blue.500" href="#">
+              <Link as={RouterLink} color="blue.500" to="/login">
                 Entrar
               </Link>
             </Text>
