@@ -5,6 +5,7 @@ import App from '../App'
 import CriarConta from '../components/CriarConta'
 import CriarContaSteps from '../components/CriarContaSteps'
 import Login from "../components/Login"
+import DonationSteps from "../components/DonationSteps"
 
 export const router = createBrowserRouter([
     {
@@ -22,5 +23,9 @@ export const router = createBrowserRouter([
     {
         path: '/login',
         element: <Login />,
+    },
+    {
+        path: '/donation-steps',
+        element: <DonationSteps />,
     },
 ])

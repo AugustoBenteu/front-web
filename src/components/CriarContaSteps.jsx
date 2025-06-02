@@ -1,223 +1,182 @@
 import {
-  Box,
-  Button,
-  Container,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  Link,
-  Stack,
-  Text,
-  VStack,
-  Select,
-  HStack,
-  Flex,
-  Divider,
+  Box, Button, Container, FormControl, FormLabel, Heading, Input, Link,
+  Text, VStack, Select, HStack, Flex, Divider, useToast, NumberInput,
+  NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Adicionado useEffect
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
+import { criarContaApi } from '../services/apiService';
 
 export default function CriarContaSteps() {
-  const [step, setStep] = useState(1);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const toast = useToast();
+
   const [formData, setFormData] = useState({
     email: '',
     senha: '',
-    confirmarSenha: '',
     nome: '',
     matricula: '',
-    anoIngresso: '',
-    curso: '',
+    anoIngresso: new Date().getFullYear().toString(),
+    id_curso: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Efeito para carregar os dados da rota no estado do formulário
+  useEffect(() => {
+    if (location.state && location.state.email && location.state.senha) {
+      setFormData(prevData => ({
+        ...prevData,
+        email: location.state.email,
+        senha: location.state.senha,
+      }));
+    } else {
+      toast({
+        title: 'Dados Incompletos',
+        description: 'Por favor, inicie o cadastro pela primeira etapa.',
+        status: 'warning',
+        duration: 5000,
+        isClosable: true,
+      });
+      navigate('/criar-conta');
+    }
+  }, [location.state, navigate, toast]);
+
 
   const handleChange = (field) => (e) => {
     setFormData({ ...formData, [field]: e.target.value });
   };
 
-  const handleNext = () => {
-    // Você pode validar os campos aqui antes de avançar
-    setStep(2);
+  const handleAnoIngressoChange = (valueAsString, valueAsNumber) => {
+    setFormData(prev => ({ ...prev, anoIngresso: valueAsString }));
   };
 
-  
-  const isStep1Valid =
-  formData.email.trim() !== '' &&
-  formData.senha.trim() !== '' &&
-  formData.confirmarSenha.trim() !== '' &&
-  formData.senha === formData.confirmarSenha;
-
-  const isStep2Valid =
-  formData.nome.trim() !== '' &&
-  formData.matricula.trim() !== '' &&
-  formData.anoIngresso.trim() !== '' &&
-  formData.curso.trim() !== '';
+  const isFormValid =
+    formData.nome.trim() !== '' &&
+    formData.matricula.trim() !== '' &&
+    formData.anoIngresso.trim() !== '' &&
+    formData.id_curso.trim() !== '' &&
+    formData.email.trim() !== '' &&
+    formData.senha.trim() !== '';
 
 
-    const passwordMismatch =
-    formData.confirmarSenha && formData.senha !== formData.confirmarSenha;
+  const handleSubmit = async () => {
+    setIsLoading(true);
 
-    const handleSubmit = async () => {
-  try {
-    const response = await fetch('localhost:8081', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-    });
+    // Validações dos campos numéricos
+    const anoIngressoNum = parseInt(formData.anoIngresso, 10);
+    const idCursoNum = parseInt(formData.id_curso, 10);
 
-    if (!response.ok) {
-      throw new Error('Erro ao enviar os dados');
+    if (isNaN(anoIngressoNum) || formData.anoIngresso.trim() === '') {
+      toast({ title: 'Erro de Dados', description: 'Ano de ingresso inválido.', status: 'error', duration: 5000, isClosable: true });
+      setIsLoading(false); return;
+    }
+    if (isNaN(idCursoNum) || formData.id_curso.trim() === '') {
+      toast({ title: 'Erro de Dados', description: 'Curso inválido.', status: 'error', duration: 5000, isClosable: true });
+      setIsLoading(false); return;
     }
 
-    const data = await response.json();
-    console.log('Success:', data);
-    // You can redirect, show a message, etc.
-  } catch (error) {
-    console.error('Erro ao enviar dados:', error);
+    const payload = {
+      email: formData.email,
+      senha: formData.senha,
+      nome: formData.nome,
+      matricula: formData.matricula,
+      ano_ingresso: anoIngressoNum,
+      id_curso: idCursoNum,
+    };
+
+    try {
+      await criarContaApi(payload);
+      toast({
+        title: 'Cadastro completo!',
+        description: 'Sua conta foi criada com sucesso.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+      navigate('/login');
+    } catch (error) {
+      const errorMessage = error.message || 'Não foi possível completar o cadastro.';
+      toast({ title: 'Erro no cadastro', description: errorMessage, status: 'error', duration: 9000, isClosable: true });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (!formData.email || !formData.senha) {
+    return <Box>Carregando ou redirecionando...</Box>;
   }
-};
-
-
 
   return (
     <Box bg="gray.50" minH="100vh">
       {/* Navbar */}
       <Flex as="nav" bg="white" px={8} py={4} justify="space-between" align="center" boxShadow="sm">
-        <Text fontWeight="bold">[doa]Unifei</Text>
-        <HStack spacing={4}>
-          <Link href="#">Suas doações</Link>
-          <Link href="#">Lista de espera</Link>
-          <Divider orientation="vertical" h="20px" />
-          <Button size="sm" variant="outline">Receber</Button>
-          <Button size="sm" colorScheme="blackAlpha">Doar</Button>
+        <Text fontWeight="bold" fontSize="lg" color="textColors.default">[doa]Unifei</Text>
+        <HStack spacing={4} align="center">
+          <Link as={RouterLink} to="/suas-doacoes" variant="nav">Suas doações</Link>
+          <Link as={RouterLink} to="/lista-espera" variant="nav">Lista de espera</Link>
+          <Divider orientation="vertical" h="20px" borderColor="ui.inputBorder" />
+          <Button size="sm" variant="outlineNeutral" as={RouterLink} to="/receber">Receber</Button>
+          <Button size="sm" variant="solidBrand" as={RouterLink} to="/doar">Doar</Button>
         </HStack>
       </Flex>
 
-      {/* Form Steps */}
-      <Container maxW="md" py={20}>
+      <Container maxW="md" py={{ base: 10, md: 20 }}>
         <Box bg="white" p={8} rounded="md" boxShadow="md">
-          {step === 1 && (
-  <VStack spacing={4} align="stretch">
-    <Heading size="md">Criar conta</Heading>
-    <Text fontSize="sm">
-      Preencha os campos abaixo para criar sua conta
-      <br />
-      <Text as="span" fontStyle="italic">
-        • Cadastre-se com o email institucional (<strong>@unifei.edu.br</strong>)
-      </Text>
-    </Text>
+          {/* Formulário direto para informações pessoais */}
+          <VStack spacing={4} align="stretch">
+            <Heading size="md" textAlign="left">Boas vindas! - Etapa 2 de 2</Heading>
+            <Text variant="muted" textAlign="left" fontSize="sm">
+              Complete seu cadastro com suas informações pessoais.
+            </Text>
+            <Text fontSize="sm" color="textColors.default" textAlign="left" mt={-2} mb={2}>
+              Email cadastrado: <strong>{formData.email}</strong>
+            </Text>
 
-    <FormControl>
-      <FormLabel>Email</FormLabel>
-      <Input
-        type="email"
-        placeholder="exemplo@unifei.edu.br"
-        value={formData.email}
-        onChange={handleChange('email')}
-      />
-    </FormControl>
+            <FormControl id="nome-step2" isRequired>
+              <FormLabel>Seu nome</FormLabel>
+              <Input name="nome" placeholder="Seu nome aqui" value={formData.nome} onChange={handleChange('nome')} />
+            </FormControl>
 
-    <FormControl>
-      <FormLabel>Senha</FormLabel>
-      <Input
-        type="password"
-        value={formData.senha}
-        onChange={handleChange('senha')}
-      />
-    </FormControl>
+            <HStack spacing={4} align="flex-start">
+              <FormControl id="matricula-step2" isRequired>
+                <FormLabel>N° de matrícula</FormLabel>
+                <Input name="matricula" placeholder="00000000000" value={formData.matricula} onChange={handleChange('matricula')} />
+              </FormControl>
+              <FormControl id="anoIngresso-step2" isRequired>
+                <FormLabel>Ano de ingresso</FormLabel>
+                <NumberInput value={formData.anoIngresso} onChange={handleAnoIngressoChange} min={new Date().getFullYear() - 10} max={new Date().getFullYear() + 1}>
+                  <NumberInputField name="anoIngresso" placeholder="20XX" />
+                  <NumberInputStepper><NumberIncrementStepper /><NumberDecrementStepper /></NumberInputStepper>
+                </NumberInput>
+              </FormControl>
+            </HStack>
 
-    <FormControl isInvalid={passwordMismatch}>
-      <FormLabel>Confirmar senha</FormLabel>
-      <Input
-        type="password"
-        value={formData.confirmarSenha}
-        onChange={handleChange('confirmarSenha')}
-      />
-      {passwordMismatch && (
-        <Text fontSize="xs" color="red.500" mt={1}>
-          As senhas não coincidem.
-        </Text>
-      )}
-    </FormControl>
+            <FormControl id="id_curso-step2" isRequired>
+              <FormLabel>Curso</FormLabel>
+              <Select name="id_curso" placeholder="Selecione seu curso" value={formData.id_curso} onChange={handleChange('id_curso')}>
+                <option value="1">Engenharia de Computação</option>
+                <option value="2">Sistemas de Informação</option>
+                <option value="3">Ciência da Computação</option>
+                <option value="99">Outro</option>
+              </Select>
+            </FormControl>
 
-    <Button
-      colorScheme="blackAlpha"
-      onClick={handleNext}
-      isDisabled={!isStep1Valid}
-    >
-      Avançar
-    </Button>
-
-    <Text fontSize="sm" align="center">
-      Já possui uma conta?{' '}
-      <Link color="blue.500" href="#">
-        Entrar
-      </Link>
-    </Text>
-  </VStack>
-)}
-
-
-          {step === 2 && (
-  <VStack spacing={4} align="stretch">
-    <Heading size="md">Boas vindas!</Heading>
-    <Text fontSize="sm">
-      Antes de prosseguir, complete seu cadastro com algumas informações pessoais
-    </Text>
-
-    <FormControl>
-      <FormLabel>Seu nome</FormLabel>
-      <Input
-        placeholder="Seu nome aqui"
-        value={formData.nome}
-        onChange={handleChange('nome')}
-      />
-    </FormControl>
-
-    <HStack spacing={4}>
-      <FormControl>
-        <FormLabel>N° de matrícula</FormLabel>
-        <Input
-          placeholder="00000000000"
-          value={formData.matricula}
-          onChange={handleChange('matricula')}
-        />
-      </FormControl>
-
-      <FormControl>
-        <FormLabel>Ano de ingresso</FormLabel>
-        <Input
-          placeholder="20XX"
-          value={formData.anoIngresso}
-          onChange={handleChange('anoIngresso')}
-        />
-      </FormControl>
-    </HStack>
-
-    <FormControl>
-      <FormLabel>Curso</FormLabel>
-      <Select
-        placeholder="Selecione seu curso"
-        value={formData.curso}
-        onChange={handleChange('curso')}
-      >
-        <option value="Engenharia de Computação">Engenharia de Computação</option>
-        <option value="Engenharia Elétrica">Sistemas de Informação</option>
-        <option value="Engenharia Elétrica">Ciência da Computação</option>
-        <option value="Outro">Outro</option>
-      </Select>
-    </FormControl>
-
-    <Button
-      colorScheme="blackAlpha"
-      onClick={handleSubmit}
-      isDisabled={!isStep2Valid}
-    >
-      Completar cadastro
-    </Button>
-  </VStack>
-)}
-
+            <Button
+              variant="solidBrand"
+              onClick={handleSubmit}
+              isDisabled={!isFormValid}
+              isLoading={isLoading}
+              width="full"
+              mt={2}
+            >
+              Completar cadastro
+            </Button>
+            {/* Link para voltar para a primeira etapa ou para o login, se necessário */}
+            <Text fontSize="sm" align="center" color="textColors.default" mt={2}>
+              <Link as={RouterLink} to="/criar-conta" variant="formLink">Voltar para Etapa 1</Link>
+            </Text>
+          </VStack>
         </Box>
       </Container>
     </Box>
