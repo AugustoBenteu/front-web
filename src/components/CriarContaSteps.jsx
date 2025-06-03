@@ -5,7 +5,7 @@ import {
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react'; // Adicionado useEffect
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
-import { criarContaApi } from '../services/apiService';
+import { criarContaApi, getCursos } from '../services/apiService';
 
 export default function CriarContaSteps() {
   const location = useLocation();
@@ -21,6 +21,27 @@ export default function CriarContaSteps() {
     id_curso: '',
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [cursos, setCursos] = useState([]); // Adicione este estado
+
+  // Carregue os cursos com useEffect
+  useEffect(() => {
+    async function fetchCursos() {
+      try {
+        const cursosData = await getCursos();
+        setCursos(cursosData);
+      } catch (error) {
+        toast({
+          title: 'Erro ao carregar cursos',
+          description: 'Não foi possível carregar a lista de cursos.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    }
+    fetchCursos();
+  }, [toast]);
+      
 
   // Efeito para carregar os dados da rota no estado do formulário
   useEffect(() => {
@@ -154,11 +175,12 @@ export default function CriarContaSteps() {
 
             <FormControl id="id_curso-step2" isRequired>
               <FormLabel>Curso</FormLabel>
-              <Select name="id_curso" placeholder="Selecione seu curso" value={formData.id_curso} onChange={handleChange('id_curso')}>
-                <option value="1">Engenharia de Computação</option>
-                <option value="2">Sistemas de Informação</option>
-                <option value="3">Ciência da Computação</option>
-                <option value="99">Outro</option>
+              <Select name="id_curso" placeholder="Selecione seu curso" value={formData.id_curso} onChange={handleChange('id_curso')} >
+                {cursos.map(curso => (
+                  <option key={curso.id} value={curso.id}>
+                    {curso.nome}
+                  </option>
+                ))}
               </Select>
             </FormControl>
 

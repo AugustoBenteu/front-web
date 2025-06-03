@@ -45,12 +45,12 @@ export default function Login() {
 
     try {
       const responseData = await loginApi({ email, senha });
-      localStorage.setItem('authToken', responseData.token);
-      localStorage.setItem('userData', JSON.stringify(responseData.user));
+      localStorage.setItem('authToken', responseData.data.token);
+      localStorage.setItem('userData', JSON.stringify(responseData.data.user));
 
       toast({
         title: 'Login realizado com sucesso!',
-        description: `Bem-vindo(a) de volta, ${responseData.user.nome}!`,
+        description: `Bem-vindo(a) de volta, ${responseData.data.user.nome}!`,
         status: 'success',
         duration: 5000,
         isClosable: true,

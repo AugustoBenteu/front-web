@@ -30,6 +30,11 @@ export interface CreatedUserResponse {
     id_curso: number;
 }
 
+export interface CursosResponse {
+    nome: string;
+    id_curso: number;
+}
+
 // Dados para login
 export interface LoginPayload {
     email: string;
@@ -74,6 +79,20 @@ export const criarContaApi = async (userData: CreateAccountPayload): Promise<Cre
             throw axiosError.response.data;
         } else {
             throw new Error(axiosError.message || 'Erro desconhecido ao criar conta');
+        }
+    }
+};
+
+export const getCursos = async (): Promise<CursosResponse> => {
+    try {
+        const response = await apiClient.get<CursosResponse>('/api/v1/cursos');
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao carregar cursos');
         }
     }
 };
