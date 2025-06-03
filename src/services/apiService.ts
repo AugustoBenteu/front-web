@@ -35,6 +35,30 @@ export interface CursosResponse {
     id_curso: number;
 }
 
+export interface CreateComputerPayload {
+    marca?: string;
+    modelo?: string;
+    ano?: number;
+    ram?: string;
+    tipo_hd?: string;
+    armazenamento?: string;
+    processador?: string;
+    detalhes?: string;
+    id_usuario?: string;
+}
+
+export interface CreatedComputerResponse {
+    marca?: string;
+    modelo?: string;
+    ano?: number;
+    ram?: string;
+    tipo_hd?: string;
+    armazenamento?: string;
+    processador?: string;
+    detalhes?: string;
+    id_usuario?: string;
+}
+
 // Dados para login
 export interface LoginPayload {
     email: string;
@@ -79,6 +103,20 @@ export const criarContaApi = async (userData: CreateAccountPayload): Promise<Cre
             throw axiosError.response.data;
         } else {
             throw new Error(axiosError.message || 'Erro desconhecido ao criar conta');
+        }
+    }
+};
+
+export const criarComputador = async (computerData: CreateComputerPayload): Promise<CreatedComputerResponse> => {
+    try {
+        const response = await apiClient.post<CreatedComputerResponse>('/api/v1/computador', computerData);
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao criar Computador');
         }
     }
 };
