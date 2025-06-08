@@ -107,9 +107,13 @@ export const criarContaApi = async (userData: CreateAccountPayload): Promise<Cre
     }
 };
 
-export const criarComputador = async (computerData: CreateComputerPayload): Promise<CreatedComputerResponse> => {
+export const criarComputador = async (computerData: CreateComputerPayload, authToken: string): Promise<CreatedComputerResponse> => {
     try {
-        const response = await apiClient.post<CreatedComputerResponse>('/api/v1/computador', computerData);
+        console.log('Dados do computador:', computerData); // Log para depuração
+        console.log('authToken:', authToken); // Log para depuração
+        const response = await apiClient.post('/api/v1/computers', computerData, {
+            headers: { Authorization: authToken }
+        });
         return response.data;
     } catch (error) {
         const axiosError = error as AxiosError<ApiErrorResponse>;

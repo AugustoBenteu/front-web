@@ -1,9 +1,12 @@
 import {
   Box, Button, Container, FormControl, FormLabel, Heading, Input, Link,
-  Text, VStack, Select, HStack, Flex, Divider, useToast, Checkbox, Textarea
+  Text, VStack, Select, HStack, Flex, Divider, useToast, Checkbox, Textarea,
+  getToken
 } from '@chakra-ui/react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useState, useRef } from 'react';
+import { criarComputador } from '../services/apiService'; 
+
 
 export default function DonationSteps() {
   const toast = useToast();
@@ -12,15 +15,12 @@ export default function DonationSteps() {
   const [form, setForm] = useState({
     marca: '',
     modelo: '',
-    ano: '',
+    ano: Number,
     ram: '',
-    tipoArmazenamento: '',
+    tipo_hd: '',
     armazenamento: '',
     processador: '',
-    bomEstado: false,
-    semConserto: false,
     detalhes: '',
-    fotos: [],
   });
 
   const handleChange = (e) => {
@@ -60,8 +60,9 @@ export default function DonationSteps() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    await criarComputador(form);
+    const authToken = localStorage.getItem('authToken');
+    form.ano = Number(form.ano);
+    await criarComputador(form,authToken );
     
     toast({
       title: 'Formulário enviado!',
@@ -153,6 +154,7 @@ export default function DonationSteps() {
                     placeholder="Ano"
                     value={form.ano}
                     onChange={handleChange}
+                    type='number'
                   />
                 </FormControl>
                 <FormControl>
@@ -173,9 +175,9 @@ export default function DonationSteps() {
                 <FormControl>
                   <FormLabel>Tipo de armazenamento</FormLabel>
                   <Select
-                    name="tipoArmazenamento"
+                    name="tipo_hd"
                     placeholder="HD ou SSD"
-                    value={form.tipoArmazenamento}
+                    value={form.tipo_hd}
                     onChange={handleChange}
                   >
                     <option>HD</option>
@@ -215,7 +217,7 @@ export default function DonationSteps() {
                   </Select>
                 </FormControl>
               </HStack>
-              <Checkbox
+              {/* <Checkbox
                 name="bomEstado"
                 isChecked={form.bomEstado}
                 onChange={handleChange}
@@ -228,7 +230,7 @@ export default function DonationSteps() {
                 onChange={handleChange}
               >
                 O computador não precisa de modificação ou conserto para funcionar (ex: não precisa de nova bateria porque a atual não segura carga)
-              </Checkbox>
+              </Checkbox> */}
               <FormControl>
                 <FormLabel>Detalhes</FormLabel>
                 <Textarea
@@ -238,7 +240,7 @@ export default function DonationSteps() {
                   onChange={handleChange}
                 />
               </FormControl>
-              <FormControl>
+              {/* <FormControl>
                 <FormLabel>Fotos</FormLabel>
                 <Box
                   border="2px dashed"
@@ -275,7 +277,7 @@ export default function DonationSteps() {
                     </Box>
                   )}
                 </Box>
-              </FormControl>
+              </FormControl> */}
               <Button colorScheme="blackAlpha" w="full" mt={2} type="submit">
                 Fazer doação
               </Button>
