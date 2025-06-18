@@ -21,6 +21,7 @@ export default function DonationSteps() {
     armazenamento: '',
     processador: '',
     detalhes: '',
+    matricula_usuario: localStorage.getItem('matricula'),
   });
 
   const handleChange = (e) => {

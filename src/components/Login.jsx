@@ -46,6 +46,7 @@ export default function Login() {
     try {
       const responseData = await loginApi({ email, senha });
       localStorage.setItem('authToken', responseData.data.token);
+      localStorage.setItem('matricula', responseData.data.user.matricula);
       localStorage.setItem('userData', JSON.stringify(responseData.data.user));
 
       toast({
