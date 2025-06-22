@@ -10,29 +10,31 @@ import {
   Button, Link, Divider
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom';
-
-// Exemplo de dados (substitua pelo seu fetch/props)
-const doacoes = [
-  {
-    id: 1,
-    data: "12 de maio de 2024",
-    titulo: "Dell XPS 13 Intel® Core™ i7-1360P 13ª geração, 16GB e 1TB SSD",
-    descricao:
-      "Notebook em perfeito estado, com poucos arranhões de uso. Possui sistema operacional linux (Ubuntu) instalado e está pronto para uso.",
-    fotos: [null, null, null, null], // Substitua null por URLs reais se houver fotos
-  },
-  {
-    id: 2,
-    data: "1 de abril de 2021",
-    titulo: "PC da Xuxa",
-    descricao:
-      "Notebook em perfeito estado, com poucos arranhões de uso. Possui sistema operacional linux (Ubuntu) instalado e está pronto para uso.",
-    fotos: [], // Sem fotos
-  },
-  // ...mais doações
-];
+import { getComputadores } from "../services/apiService";
 
 export default function DoacoesHistorico({ doacoesList = doacoes }) {
+   const [doacoes, setDoacoes] = useState([]); // Adicione este estado
+  
+    // Carregue os cursos com useEffect
+    useEffect(() => {
+      async function fetchCursos() {
+        try {
+          const computadoresData = await getComputadores();
+          setDoacoes(computadoresData);
+        } catch (error) {
+          toast({
+            title: 'Erro ao carregar computadores',
+            description: 'Não foi possível carregar a lista de computadores.',
+            status: 'error',
+            duration: 5000,
+            isClosable: true,
+          });
+        }
+      }
+      fetchCursos();
+    }, [toast]);
+
+
   return (
     <Box bg="gray.50" minH="100vh" >
         {/* Navbar */}
@@ -91,7 +93,7 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
           }}
         >
           <VStack spacing={6} align="stretch">
-            {doacoesList.map((doacao) => (
+            {doacoes.map((doacao) => (
               <Box
                 key={doacao.id}
                 bg="white"

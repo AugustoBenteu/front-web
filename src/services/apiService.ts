@@ -44,10 +44,10 @@ export interface CreateComputerPayload {
     armazenamento?: string;
     processador?: string;
     detalhes?: string;
-    id_usuario?: string;
+    matricula_usuario?: string;
 }
 
-export interface CreatedComputerResponse {
+export interface ComputerResponse {
     marca?: string;
     modelo?: string;
     ano?: number;
@@ -56,7 +56,7 @@ export interface CreatedComputerResponse {
     armazenamento?: string;
     processador?: string;
     detalhes?: string;
-    id_usuario?: string;
+    matricula_usuario?: string;
 }
 
 // Dados para login
@@ -107,7 +107,7 @@ export const criarContaApi = async (userData: CreateAccountPayload): Promise<Cre
     }
 };
 
-export const criarComputador = async (computerData: CreateComputerPayload, authToken: string): Promise<CreatedComputerResponse> => {
+export const criarComputador = async (computerData: CreateComputerPayload, authToken: string): Promise<ComputerResponse> => {
     try {
         console.log('Dados do computador:', computerData); // Log para depuração
         console.log('authToken:', authToken); // Log para depuração
@@ -135,6 +135,20 @@ export const getCursos = async (): Promise<CursosResponse> => {
             throw axiosError.response.data;
         } else {
             throw new Error(axiosError.message || 'Erro desconhecido ao carregar cursos');
+        }
+    }
+};
+
+export const getComputadores = async (): Promise<ComputerResponse[]> => {
+    try {
+        const response = await apiClient.get<ComputerResponse[]>('/api/v1/computadores');
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao carregar computadores');
         }
     }
 };

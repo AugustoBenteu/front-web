@@ -62,7 +62,9 @@ export default function DonationSteps() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const authToken = localStorage.getItem('authToken');
+    const matricula_usuario = localStorage.getItem('matricula');
     form.ano = Number(form.ano);
+    form.matricula_usuario = matricula_usuario;
     await criarComputador(form,authToken );
     
     toast({
