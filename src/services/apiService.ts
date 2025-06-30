@@ -80,6 +80,24 @@ export interface LoginResponse {
     user: UserProfile;
 }
 
+
+// Dados para criar um pedido na fila de espera
+export interface CreatePedidoPayload {
+    justificativa?: string;
+    id_usuario: string; // Matrícula do usuário
+}
+
+// Resposta da API ao criar ou buscar um pedido (espelha IPedidoSemRelacionamentos)
+export interface PedidoResponse {
+    id: number;
+    id_computador: number | null;
+    id_ponto_entrega: number | null;
+    id_usuario: string | null;
+    justificativa: string | null;
+    status: boolean | null;
+    prioridade: number | null;
+}
+
 // Interface para erros da API (se sua API tiver um formato padrão de erro)
 export interface ApiErrorResponse {
     message: string;
@@ -125,6 +143,22 @@ export const criarComputador = async (computerData: CreateComputerPayload, authT
     }
 };
 
+export const criarPedido = async (pedidoData: CreatePedidoPayload, authToken: string): Promise<PedidoResponse> => {
+    try {
+        const response = await apiClient.post<PedidoResponse>('/api/v1/pedidos', pedidoData, {
+            headers: { Authorization: authToken },
+        });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao criar pedido');
+        }
+    }
+};
+
 export const getCursos = async (): Promise<CursosResponse> => {
     try {
         const response = await apiClient.get<CursosResponse>('/api/v1/cursos');
@@ -153,6 +187,22 @@ export const getComputadores = async (): Promise<ComputerResponse[]> => {
     }
 };
 
+export const getMeusPedidos = async (matricula: string, authToken: string): Promise<PedidoResponse[]> => {
+    try {
+        const response = await apiClient.get('/api/v1/pedidos', {
+            headers: { Authorization: authToken },
+            params: { id_usuario: matricula },
+        });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao buscar pedidos');
+        }
+    }
+};
 
 
 /**
