@@ -26,7 +26,7 @@ export const router = createBrowserRouter([
     element: <Login />,
   },
   {
-    path: "/donation-steps",
+    path: "/doar",
     element: <DonationSteps />,
   },
   {

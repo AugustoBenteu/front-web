@@ -7,19 +7,26 @@ import {
   Image,
   SimpleGrid,
   Flex,
-  Button, Link, Divider
+  Button, Link, Divider,useToast
 } from "@chakra-ui/react";
 import { Link as RouterLink } from 'react-router-dom';
 import { getComputadores } from "../services/apiService";
+import { useState, useEffect } from 'react';
 
-export default function DoacoesHistorico({ doacoesList = doacoes }) {
+export default function DoacoesHistorico( ) {
    const [doacoes, setDoacoes] = useState([]); // Adicione este estado
+     const toast = useToast();
+
   
     // Carregue os cursos com useEffect
     useEffect(() => {
-      async function fetchCursos() {
+      async function fetchComputadores() {
         try {
-          const computadoresData = await getComputadores();
+          console.log('Carregando computadores...');
+          const matricula_usuario = localStorage.getItem('matricula');
+          const authToken = localStorage.getItem('authToken');
+          const computadoresData = await getComputadores(matricula_usuario,authToken);
+          console.log('computadoresData', computadoresData);
           setDoacoes(computadoresData);
         } catch (error) {
           toast({
@@ -31,7 +38,7 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
           });
         }
       }
-      fetchCursos();
+      fetchComputadores();
     }, [toast]);
 
 
@@ -102,10 +109,10 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
                 p={6}
                 mb={2}
               >
-                <Text fontSize="sm" color="gray.500" mb={2}>
-                  Doação concluída no dia {doacao.data}
-                </Text>
-                {doacao.fotos && doacao.fotos.length > 0 && (
+                {/* <Text fontSize="sm" color="gray.500" mb={2}>
+                  Doação concluída no dia {doacao.ano}
+                </Text> */}
+                {/* {doacao.fotos && doacao.fotos.length > 0 && (
                   <SimpleGrid columns={[2, 4]} spacing={4} mb={4}>
                     {doacao.fotos.map(
                       (foto, idx) =>
@@ -122,12 +129,12 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
                         )
                     )}
                   </SimpleGrid>
-                )}
+                )} */}
                 <Text fontWeight="bold" fontSize="md" mb={1}>
-                  {doacao.titulo}
+                  {doacao.marca} {doacao.modelo} {doacao.processador} {doacao.ram} {doacao.armazenamento}
                 </Text>
                 <Text fontSize="sm" color="gray.700">
-                  {doacao.descricao}
+                  {doacao.detalhes}
                 </Text>
               </Box>
             ))}

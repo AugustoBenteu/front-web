@@ -44,7 +44,7 @@ export interface CreateComputerPayload {
     armazenamento?: string;
     processador?: string;
     detalhes?: string;
-    matricula_usuario?: string;
+    id_usuario?: string;
 }
 
 export interface ComputerResponse {
@@ -56,7 +56,7 @@ export interface ComputerResponse {
     armazenamento?: string;
     processador?: string;
     detalhes?: string;
-    matricula_usuario?: string;
+    id_usuario?: string;
 }
 
 // Dados para login
@@ -139,9 +139,13 @@ export const getCursos = async (): Promise<CursosResponse> => {
     }
 };
 
-export const getComputadores = async (): Promise<ComputerResponse[]> => {
+export const getComputadores = async (id_usuario: string, authToken: string): Promise<ComputerResponse[]> => {
     try {
-        const response = await apiClient.get<ComputerResponse[]>('/api/v1/computadores');
+        const response = await apiClient.get<ComputerResponse[]>(`/api/v1/computers?id_usuario=${id_usuario}`,
+            {
+            headers: { Authorization: authToken }
+        }
+        );
         return response.data;
     } catch (error) {
         const axiosError = error as AxiosError<ApiErrorResponse>;
