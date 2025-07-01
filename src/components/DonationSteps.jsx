@@ -110,7 +110,7 @@ export default function DonationSteps() {
           >
             Receber
           </Button>
-          <Button size="sm" variant="solidBrand" as={RouterLink} to="/donation-steps">
+          <Button size="sm" variant="solidBrand" as={RouterLink} to="/doar">
             Doar
           </Button>
         </HStack>

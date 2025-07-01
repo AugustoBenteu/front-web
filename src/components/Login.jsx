@@ -58,7 +58,7 @@ export default function Login() {
       });
 
       // Ajustar a rota 
-      navigate('/donation-steps'); 
+      navigate('/doar'); 
 
     } catch (error) {
       const errorMessage = error.message || 'Email ou senha inválidos. Tente novamente.';

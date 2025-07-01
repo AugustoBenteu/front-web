@@ -13,7 +13,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { getComputadores } from "../services/apiService";
 import { useState, useEffect } from 'react';
 
-export default function DoacoesHistorico({ doacoesList = doacoes }) {
+export default function DoacoesHistorico() {
   const [doacoes, setDoacoes] = useState([]); // Adicione este estado
   const toast = useToast();
 
@@ -77,7 +77,7 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
           >
             Receber
           </Button>
-          <Button size="sm" variant="solidBrand" as={RouterLink} to="/donation-steps">
+          <Button size="sm" variant="solidBrand" as={RouterLink} to="/doar">
             Doar
           </Button>
         </HStack>
@@ -99,7 +99,7 @@ export default function DoacoesHistorico({ doacoesList = doacoes }) {
           }}
         >
           <VStack spacing={6} align="stretch">
-            {doacoes.map((doacao) => (
+            {doacoes != undefined && doacoes.map((doacao) => (
               <Box
                 key={doacao.id}
                 bg="white"

@@ -173,7 +173,7 @@ export default function ListaEsperaSteps() {
                     <Link as={RouterLink} to="/lista-espera" variant="nav">Lista de espera</Link>
                     <Divider orientation="vertical" h="20px" borderColor="gray.200" />
                     <Button size="sm" variant="outline" as={RouterLink} to="/lista-espera-steps">Receber</Button>
-                    <Button size="sm" colorScheme="purple" as={RouterLink} to="/donation-steps">Doar</Button>
+                    <Button size="sm" colorScheme="purple" as={RouterLink} to="/doar">Doar</Button>
                 </HStack>
             </Flex>
 

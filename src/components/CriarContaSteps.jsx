@@ -138,7 +138,7 @@ export default function CriarContaSteps() {
           <Link as={RouterLink} to="/lista-espera" variant="nav">Lista de espera</Link>
           <Divider orientation="vertical" h="20px" borderColor="ui.inputBorder" />
           <Button size="sm" variant="outlineNeutral" as={RouterLink} to="/lista-espera-steps">Receber</Button>
-          <Button size="sm" variant="solidBrand" as={RouterLink} to="/donation-steps">Doar</Button>
+          <Button size="sm" variant="solidBrand" as={RouterLink} to="/doar-steps">Doar</Button>
         </HStack>
       </Flex>
 
