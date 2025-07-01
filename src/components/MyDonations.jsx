@@ -15,30 +15,8 @@ import { useState, useEffect } from 'react';
 
 export default function DoacoesHistorico({ doacoesList = doacoes }) {
   const [doacoes, setDoacoes] = useState([]); // Adicione este estado
+  const toast = useToast();
 
-  // Carregue os cursos com useEffect
-  useEffect(() => {
-    async function fetchCursos() {
-      try {
-        const computadoresData = await getComputadores();
-        setDoacoes(computadoresData);
-      } catch (error) {
-        toast({
-          title: 'Erro ao carregar computadores',
-          description: 'Não foi possível carregar a lista de computadores.',
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-        });
-      }
-    }
-    fetchCursos();
-  }, [toast]);
-export default function DoacoesHistorico( ) {
-   const [doacoes, setDoacoes] = useState([]); // Adicione este estado
-     const toast = useToast();
-
-  
     // Carregue os cursos com useEffect
     useEffect(() => {
       async function fetchComputadores() {
