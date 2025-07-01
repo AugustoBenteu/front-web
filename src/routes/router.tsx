@@ -7,6 +7,8 @@ import CriarContaSteps from "../components/CriarContaSteps";
 import Login from "../components/Login";
 import DonationSteps from "../components/DonationSteps";
 import MyDonations from "../components/MyDonations";
+import ListaEsperaSteps from "../components/ListaEsperaSteps";
+import ListaEspera from "../components/ListaEspera";
 
 export const router = createBrowserRouter([
   {
@@ -33,4 +35,12 @@ export const router = createBrowserRouter([
     path: "/suas-doacoes",
     element: <MyDonations />,
   },
+  {
+    path: "/lista-espera",
+    element: <ListaEspera />,
+  },
+  {
+    path: "/lista-espera-steps",
+    element: <ListaEsperaSteps />,
+  }
 ]);
