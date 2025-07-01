@@ -59,6 +59,14 @@ export interface ComputerResponse {
     matricula_usuario?: string;
 }
 
+export interface PontoColetaResponse {
+    id: number;
+    nome: string;
+    instituto?: string;
+    email?: string;
+    telefone?: string;
+}
+
 // Dados para login
 export interface LoginPayload {
     email: string;
@@ -204,6 +212,37 @@ export const getMeusPedidos = async (matricula: string, authToken: string): Prom
     }
 };
 
+export const getPontoColetaById = async (id: number, authToken: string): Promise<PontoColetaResponse> => {
+    try {
+        const response = await apiClient.get<PontoColetaResponse>(`/api/v1/pontos-coleta/${id}`, {
+            headers: { Authorization: authToken },
+        });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao buscar o ponto de coleta');
+        }
+    }
+};
+
+export const getComputadorById = async (id: number, authToken: string): Promise<ComputerResponse> => {
+    try {
+        const response = await apiClient.get<ComputerResponse>(`/api/v1/computers/${id}`, {
+            headers: { Authorization: authToken },
+        });
+        return response.data;
+    } catch (error) {
+        const axiosError = error as AxiosError<ApiErrorResponse>;
+        if (axiosError.response && axiosError.response.data) {
+            throw axiosError.response.data;
+        } else {
+            throw new Error(axiosError.message || 'Erro desconhecido ao buscar o computador');
+        }
+    }
+};
 
 /**
  * Função para realizar login.

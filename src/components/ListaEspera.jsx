@@ -1,19 +1,24 @@
 import {
     Box, Button, Container, Heading, Text, VStack, Flex,
-    Link, Divider, useToast, Spinner, Alert, AlertIcon, HStack
+    Link, Divider, useToast, Spinner, Alert, AlertIcon, HStack,
+    SimpleGrid,
 } from '@chakra-ui/react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getMeusPedidos } from '../services/apiService';
+import { getMeusPedidos, getComputadorById, getPontoColetaById } from '../services/apiService';
 
 export default function ListaEspera() {
     const toast = useToast();
     const navigate = useNavigate();
 
-    // Estados do componente
-    const [pedido, setPedido] = useState(null); 
+    const [pedido, setPedido] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [computador, setComputador] = useState(null);
+    const [pontoColeta, setPontoColeta] = useState(null);
+    const [detalhesLoading, setDetalhesLoading] = useState(false);
+
+    // Efeito 1: Busca o pedido principal do usuário
     useEffect(() => {
         const fetchStatusDoPedido = async () => {
             setLoading(true);
@@ -22,35 +27,20 @@ export default function ListaEspera() {
                 const matricula = localStorage.getItem('matricula');
 
                 if (!authToken || !matricula) {
-                    toast({
-                        title: 'Autenticação necessária',
-                        description: 'Você precisa fazer login para ver seu status.',
-                        status: 'warning',
-                        duration: 3000,
-                        isClosable: true,
-                    });
-                    navigate('/login'); 
+                    navigate('/login');
                     return;
                 }
-                
 
                 const pedidosDoUsuario = await getMeusPedidos(matricula, authToken);
-                
+
                 if (pedidosDoUsuario && pedidosDoUsuario.length > 0) {
                     setPedido(pedidosDoUsuario[0]);
                 } else {
                     setPedido(null);
                 }
-
             } catch (error) {
                 console.error("Erro ao buscar status do pedido:", error);
-                toast({
-                    title: 'Erro de comunicação',
-                    description: 'Não foi possível verificar seu status na fila. Tente novamente mais tarde.',
-                    status: 'error',
-                    duration: 4000,
-                    isClosable: true,
-                });
+                toast({ title: 'Erro de comunicação', description: 'Não foi possível verificar seu status.', status: 'error' });
             } finally {
                 setLoading(false);
             }
@@ -59,61 +49,110 @@ export default function ListaEspera() {
         fetchStatusDoPedido();
     }, [toast, navigate]);
 
+    // Efeito 2: Busca os detalhes (computador e ponto de coleta) se o pedido for aprovado
+    useEffect(() => {
+        const fetchDetalhesDaDoacao = async () => {
+            // Roda apenas se tivermos um pedido aprovado com os IDs necessários
+            if (pedido && pedido.status === true && pedido.id_computador && pedido.id_ponto_entrega) {
+                setDetalhesLoading(true);
+                try {
+                    const authToken = localStorage.getItem('authToken');
+
+                    // Busca os dados em paralelo para mais eficiência
+                    const [computadorData, pontoColetaData] = await Promise.all([
+                        getComputadorById(pedido.id_computador, authToken),
+                        getPontoColetaById(pedido.id_ponto_entrega, authToken)
+                    ]);
+
+                    setComputador(computadorData);
+                    setPontoColeta(pontoColetaData);
+
+                } catch (error) {
+                    console.error("Erro ao buscar detalhes da doação:", error);
+                    toast({ title: 'Erro', description: 'Não foi possível carregar os detalhes da sua doação.', status: 'error' });
+                } finally {
+                    setDetalhesLoading(false);
+                }
+            }
+        };
+
+        fetchDetalhesDaDoacao();
+    }, [pedido, toast]);
+
     const RenderLoading = () => (
-        <VStack spacing={4}>
-            <Spinner size="xl" color="purple.500" thickness="4px" speed="0.65s" />
-            <Text fontSize="lg" color="gray.600">Verificando seu status na fila...</Text>
-        </VStack>
+        <VStack spacing={4}><Spinner size="xl" color="purple.500" thickness="4px" /><Text fontSize="lg" color="gray.600">Verificando seu status...</Text></VStack>
     );
 
-    // Sub-componente para quando o usuário NÃO está na fila.
     const RenderNaoInscrito = () => (
-        <VStack spacing={6} textAlign="center" maxW="lg">
+        <VStack spacing={6} textAlign="center">
             <Heading size="lg" fontWeight="medium">Lista de espera</Heading>
-            <Text fontSize="lg" color="gray.600">
-                Você não está na lista de espera por uma doação no momento.
-            </Text>
-            <Button
-                as={RouterLink}
-                to="/lista-espera-steps" 
-                colorScheme="purple"
-                size="lg"
-                px={10}
-            >
-                Entrar na lista de espera
-            </Button>
+            <Text fontSize="lg" color="gray.600">Você não está na lista de espera no momento.</Text>
+            <Button as={RouterLink} to="/lista-espera-steps" colorScheme="purple" size="lg" px={10}>Entrar na lista de espera</Button>
         </VStack>
     );
 
-    // Sub-componente para quando o usuário ESTÁ na fila.
-    const RenderInscrito = () => (
-        <VStack spacing={6} textAlign="center" maxW="xl">
-            <Heading size="lg" fontWeight="medium">Lista de espera</Heading>
-            
-            {/* Renderização condicional baseada na prioridade do pedido */}
-            {pedido && pedido.prioridade > 0 ? (
-                // Cenário 1: Usuário priorizado
-                <>
-                    <Text fontSize="lg" color="gray.700">Você está cadastrado na lista de espera e já foi priorizado!</Text>
-                    <Text fontSize="md">Sua prioridade, definida conforme sua avaliação socioeconômica, é <Text as="b">imediata</Text>.</Text>
-                    <Alert status="success" borderRadius="md" variant="subtle">
-                        <AlertIcon />
-                        <Box>
-                            <Text>Prioridade <Text as="b">imediata</Text> significa que você está entre os primeiros na lista para receber uma doação.</Text>
+    const RenderInscrito = () => {
+        if (pedido.status === true) {
+            if (detalhesLoading || !computador || !pontoColeta) {
+                return <RenderLoading />; // Mostra loading enquanto busca os detalhes
+            }
+            return (
+                <VStack spacing={8} w="full" maxW="4xl">
+                    <Box textAlign="center">
+                        <Heading size="lg">Parabéns, você recebeu uma doação!</Heading>
+                        <Text mt={2} fontSize="lg" color="gray.600">Dirija-se ao ponto de coleta no campus para buscar seu computador.</Text>
+                    </Box>
+                    <SimpleGrid columns={{ base: 1, md: 2 }} spacing={8} w="full">
+                        <Box bg="white" p={6} rounded="lg" boxShadow="md">
+                            <VStack align="start" spacing={4}>
+                                <Heading size="md">{computador.marca} {computador.modelo}</Heading>
+                                <Text color="gray.600">{computador.detalhes || "Computador pronto para uso."}</Text>
+                                <Alert status="success" borderRadius="md"><AlertIcon />Computador testado e aprovado na avaliação técnica.</Alert>
+                            </VStack>
                         </Box>
-                    </Alert>
-                </>
-            ) : (
-                // Cenário 2: Usuário aguardando avaliação
-                <>
-                    <Text fontSize="lg" color="gray.700">Você está cadastrado na lista de espera!</Text>
-                    <Text fontSize="md">Seu status atual é <Text as="b">aguardando avaliação socioeconômica</Text>.</Text>
-                </>
-            )}
-        </VStack>
-    );
+                        <Box bg="white" p={6} rounded="lg" boxShadow="md">
+                            <VStack align="start" spacing={4}>
+                                <Heading size="md">{pontoColeta.nome}</Heading>
+                                <Text color="gray.600">Este é o local para receber sua doação. Você será relembrado por e-mail.</Text>
+                            </VStack>
+                        </Box>
+                    </SimpleGrid>
+                </VStack>
+            );
+        }
 
-    // Estrutura principal do componente.
+        if (pedido.status === false) {
+            return (
+                <VStack spacing={6} textAlign="center" maxW="xl">
+                    <Heading size="lg" fontWeight="medium">Pedido Negado</Heading>
+                    <Text fontSize="lg" color="gray.600">Sua solicitação não foi aprovada no momento.</Text>
+                    <Alert status="error" borderRadius="md" variant="subtle"><AlertIcon />Você poderá tentar novamente no próximo ciclo de doações.</Alert>
+                </VStack>
+            );
+        }
+
+        if (pedido.status === null) {
+            if (pedido.prioridade > 0) {
+                return (
+                    <VStack spacing={6} textAlign="center" maxW="xl">
+                        <Heading size="lg" fontWeight="medium">Lista de espera</Heading>
+                        <Text fontSize="lg" color="gray.700">Você está cadastrado e já foi priorizado!</Text>
+                        <Text fontSize="md">Sua prioridade é <Text as="b">imediata</Text>.</Text>
+                        <Alert status="warning" borderRadius="md" bg="yellow.50"><AlertIcon color="yellow.500" />Isto significa que você está entre os primeiros da fila para receber uma doação.</Alert>
+                    </VStack>
+                );
+            }
+            return (
+                <VStack spacing={6} textAlign="center" maxW="xl">
+                    <Heading size="lg" fontWeight="medium">Lista de espera</Heading>
+                    <Text fontSize="lg" color="gray.700">Você está cadastrado!</Text>
+                    <Text fontSize="md">Seu status atual é <Text as="b">aguardando avaliação socioeconômica</Text>.</Text>
+                </VStack>
+            );
+        }
+        return <Text>Status do pedido desconhecido.</Text>;
+    };
+
     return (
         <Box bg="gray.50" minH="100vh">
             <Flex as="nav" bg="white" px={8} py={4} justify="space-between" align="center" boxShadow="sm">
@@ -126,9 +165,7 @@ export default function ListaEspera() {
                     <Button size="sm" colorScheme="purple" as={RouterLink} to="/donation-steps">Doar</Button>
                 </HStack>
             </Flex>
-
-            <Container centerContent py={{ base: 20, md: 40 }} minH="60vh">
-                {/* Lógica principal de renderização condicional */}
+            <Container centerContent py={{ base: 10, md: 20 }} maxW="4xl">
                 {loading ? <RenderLoading /> : (pedido ? <RenderInscrito /> : <RenderNaoInscrito />)}
             </Container>
         </Box>
